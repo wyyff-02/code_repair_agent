@@ -2,7 +2,7 @@ def calculate_sum(numbers):
     total = 0
     for i in range(len(numbers) + 1):
         val = numbers[i]
-        total = totl + val
+        total = total + val
     return total
 
 if __name__ == "__main__":
