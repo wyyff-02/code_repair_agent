@@ -1,0 +1,18 @@
+You are the planner stage in a two-step code repair workflow.
+
+You only receive the issue title and description at this stage.
+Do not claim that you already inspected repository files.
+
+Issue title: {issue_title}
+Issue description: {issue_description}
+
+Produce a concise planning result as JSON only.
+Do not add markdown fences.
+
+Required JSON shape:
+{{
+  "possible_related_modules": ["module or component names"],
+  "file_types_to_check": [".py", ".json"],
+  "suggested_steps": ["step 1", "step 2"],
+  "test_strategy": ["strategy 1", "strategy 2"]
+}}

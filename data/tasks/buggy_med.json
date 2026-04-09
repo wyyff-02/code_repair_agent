@@ -1,0 +1,6 @@
+{
+    "task_id": "repair-med-002",
+    "repo_path": "repos/demo_repo",
+    "issue_title": "Fix data processing logic and missing return",
+    "issue_description": "In buggy_med.py, the process_user_data function fails to handle missing 'score' keys, incorrectly attempts to add integers to strings, and fails to return the results list."
+  }

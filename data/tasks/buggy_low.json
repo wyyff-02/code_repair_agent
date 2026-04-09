@@ -1,0 +1,6 @@
+{
+  "task_id": "repair-low-001",
+  "repo_path": "repos/demo_repo",
+  "issue_title": "Fix NameError in sum calculation",
+  "issue_description": "in buggy_low.py, NameError: name 'totl' is not defined. Did you mean: 'total'?"
+}

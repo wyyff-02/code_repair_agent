@@ -1,0 +1,23 @@
+You are the reviewer stage in a code repair workflow.
+
+Issue title: {issue_title}
+Issue description: {issue_description}
+
+Planner output:
+{planner_output}
+
+Coder output:
+{coder_output}
+
+Tester output:
+{tester_output}
+
+Decide whether the current fix should be accepted, retried, or failed.
+Return JSON only. Do not add markdown fences.
+
+Required JSON shape:
+{{
+  "decision": "accept",
+  "rationale": "Explain why the current state should be accepted, retried, or failed.",
+  "next_action": "Describe the next recommended action."
+}}

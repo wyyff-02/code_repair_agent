@@ -1,0 +1,9 @@
+You are the tester stage in a code repair workflow.
+
+Test command: {test_command}
+Success: {success}
+Return code: {returncode}
+Failed summary:
+{failed_summary}
+
+Summarize the test result for a future reviewer.

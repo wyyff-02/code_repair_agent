@@ -1,0 +1,26 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+
+# Local environment files
+.env
+
+# Tooling and local workspace artifacts
+.codex
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# OS/editor files
+.DS_Store
+*.swp
+*.swo
+
+# Runtime results and local reports
+data/results/*
+!data/results/.gitkeep

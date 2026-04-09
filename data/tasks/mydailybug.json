@@ -1,0 +1,6 @@
+{
+    "task_id": "mydailybug-001",
+    "repo_path": "repos/demo_repo",
+    "issue_title": "Fix the TypeError in longestConsecutive function and ensure it runs correctly",
+    "issue_description": "TypeError: longestConsecutive() missing 1 required positional argument: 'nums'"
+  }

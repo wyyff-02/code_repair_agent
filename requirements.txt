@@ -1,0 +1,4 @@
+python-dotenv>=1.0,<2.0
+# OpenHands SDK runtime is intended for Python 3.12+ environments.
+openhands-sdk
+openhands-tools
