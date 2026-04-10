@@ -16,19 +16,14 @@ The project uses a single-model, multi-agent workflow with four roles:
 ## System Architecture
 
 ```mermaid
-flowchart TD
-    A[Task JSON] --> B[CodeRepairRunner]
-    B --> C[Planner]
-    C --> D[Coder]
-    D --> E[Tester]
-    E --> F[Reviewer]
-    F -->|accept| G[Write result artifacts]
-    F -->|retry and attempts remaining| H[Save attempt outputs]
-    H --> I[Record git diff]
-    I --> J[Rollback with git reset --hard]
-    J --> C
-    F -->|fail or max retries reached| G
-    G --> K[data/results/task_id/]
+flowchart LR
+    A[Task JSON] --> B[Planner]
+    B --> C[Coder]
+    C --> D[Tester]
+    D --> E[Reviewer]
+    E -->|accept / fail| F[data/results/]
+    E -->|retry| G[git reset --hard]
+    G --> B
 ```
 
 Key modules:
