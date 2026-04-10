@@ -98,7 +98,7 @@ Optional sanity check:
 One command that can run immediately without model configuration:
 
 ```bash
-.venv/bin/python -m app.main run --task-file data/tasks/buggy_high.json --run-tests-only
+.venv/bin/python -m app.main run --task-file data/tasks/buggy_low.json --run-tests-only
 ```
 
 This command uses the local tester path only and prints a compact result summary for the sample repo task.
