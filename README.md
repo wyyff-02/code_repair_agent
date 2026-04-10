@@ -49,10 +49,10 @@ Recommended environment:
 - Python 3.12 for OpenHands-backed planner/coder/reviewer stages
 - a configured `.env` file for model access when using `plan_and_code`
 
-Install `uv`(0.8.13+):
+Install `uv`:
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh 
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 Create the OpenHands runtime environment with Python 3.12:
@@ -93,15 +93,14 @@ This command uses the local tester path only and prints a compact result summary
 Full workflow with planner, coder, tester, reviewer, retry, and rollback:
 
 ```bash
-.venv/bin/python -m app.main run --task-file data/tasks/sample_bug_task.json --mode plan_and_code
+.venv/bin/python -m app.main run --task-file data/tasks/buggy_low.json --mode plan_and_code
 ```
 
 Useful CLI commands:
 
 ```bash
 .venv/bin/python -m app.main show-config
-.venv/bin/python -m app.main run --task-file data/tasks/sample_bug_task.json --mode demo
-.venv/bin/python -m app.main benchmark --tasks-dir data/tasks --mode plan_and_code
+.venv/bin/python -m app.main run --task-file data/tasks/buggy_low.json --mode demo
 ```
 
 GitHub-ready repository files included in this project:
@@ -122,9 +121,9 @@ Result persistence:
 - Per-task results go to `data/results/{task_id}/`
 - Benchmark summary goes to `data/results/benchmark_summary.md`
 
-## Effect Data
+## Benchmark Results
 
-Benchmark :
+Tested benchmark snapshot:
 
 | metric | value |
 | --- | --- |
@@ -162,7 +161,7 @@ Fields:
 
 ## Benchmark
 
-The benchmark runner scans multiple task JSON files and executes them one by one.
+The project includes a serial benchmark runner for internal evaluation. The current tested result snapshot is shown in the Benchmark Results section above.
 
 It records:
 
@@ -178,17 +177,7 @@ Current behavior:
 - failed tasks are still included in the final report
 - report format is markdown
 - each task still writes its own normal result directory while benchmark is running
-
-Example:
-
-```bash
-python -m app.main benchmark --tasks-dir data/tasks --mode plan_and_code
-```
-
-Output:
-
-- terminal: compact JSON summary
-- file: `data/results/benchmark_summary.md`
+- benchmark summary artifacts are written under `data/results/`
 
 ## Current Limits
 
