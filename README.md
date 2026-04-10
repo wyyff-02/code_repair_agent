@@ -15,15 +15,33 @@ The project uses a single-model, multi-agent workflow with four roles:
 
 ## System Architecture
 
-```mermaid
-flowchart LR
-    A[Task JSON] --> B[Planner]
-    B --> C[Coder]
-    C --> D[Tester]
-    D --> E[Reviewer]
-    E -->|accept / fail| F[data/results/]
-    E -->|retry| G[git reset --hard]
-    G --> B
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                     Code Repair Agent System                   │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 1: Task Input       Phase 2: Planning                   │
+│  ┌─────────────────┐       ┌─────────────────┐                 │
+│  │ Task Loader     │──────▶│ Planner Agent   │                 │
+│  │ Repo Resolver   │       │ Repair Plan     │                 │
+│  └─────────────────┘       └────────┬────────┘                 │
+│                                     │                           │
+│  Phase 3: Coding                   ▼                           │
+│  ┌─────────────────────────────────────────────┐               │
+│  │ Coder Agent │ Repo Search │ File Editing    │               │
+│  └─────────────────────────────────────────────┘               │
+│                            │                                    │
+│  Phase 4: Validation      ▼           Phase 5: Persistence      │
+│  ┌─────────────────┐       ┌─────────────────┐                 │
+│  │ Tester Agent    │──────▶│ Result Writer   │                 │
+│  │ Reviewer Agent  │       │ Logs and Diffs  │                 │
+│  └────────┬────────┘       └─────────────────┘                 │
+│           │                                                     │
+│           ▼                                                     │
+│  Retry / Rollback Loop                                          │
+│  ┌─────────────────────────────────────────────┐               │
+│  │ Save attempt outputs │ Record diff │ Reset  │               │
+│  └─────────────────────────────────────────────┘               │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 Key modules:
