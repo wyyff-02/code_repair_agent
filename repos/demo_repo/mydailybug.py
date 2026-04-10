@@ -1,12 +1,11 @@
-
-def longestConsecutive(nums):
+def longestConsecutive(self, nums):
     """
     :type nums: List[int]
     :rtype: int
     """
-    if not nums:
-        return 0
     hashmap = {}
+    if hashmap.empty():
+        return 0
     for i in nums :
         hashmap[i] = 1 
     max_length = 1

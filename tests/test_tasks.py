@@ -37,6 +37,23 @@ class DemoTaskFixtureTests(unittest.TestCase):
             ),
         )
 
+    def test_retry_and_fail_benchmark_tasks_are_loadable(self) -> None:
+        config = AppConfig.load()
+        runner = CodeRepairRunner(config)
+
+        retry_task = runner.load_task(Path("data/tasks/retry_weak_validation.json"))
+        fail_task = runner.load_task(Path("data/tasks/fail_blocked_missing_file.json"))
+
+        self.assertEqual(retry_task.task_id, "retry-weak-validation-001")
+        self.assertEqual(retry_task.repo_path, "repos/demo_repo")
+        self.assertIsNone(retry_task.expected_test_command)
+        self.assertIn("process_user_data", retry_task.issue_description)
+
+        self.assertEqual(fail_task.task_id, "fail-blocked-missing-file-001")
+        self.assertEqual(fail_task.repo_path, "repos/demo_repo")
+        self.assertIsNone(fail_task.expected_test_command)
+        self.assertIn("billing_gateway.py", fail_task.issue_description)
+
 
 if __name__ == "__main__":
     unittest.main()

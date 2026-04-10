@@ -1,0 +1,6 @@
+{
+  "task_id": "fail-blocked-missing-file-001",
+  "repo_path": "repos/demo_repo",
+  "issue_title": "Fix the production crash in billing_gateway.py without changing any other file",
+  "issue_description": "The bug is reported to be in billing_gateway.py. Only billing_gateway.py may be modified for this task. Do not create new files, do not edit any other existing file, and do not guess behavior from unrelated modules. If billing_gateway.py is not present in the repository, treat the task as blocked rather than partially repairable."
+}

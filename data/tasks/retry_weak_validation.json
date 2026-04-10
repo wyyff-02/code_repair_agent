@@ -1,0 +1,6 @@
+{
+  "task_id": "retry-weak-validation-001",
+  "repo_path": "repos/demo_repo",
+  "issue_title": "Fix inconsistent score handling in process_user_data",
+  "issue_description": "The function process_user_data should handle mixed score values consistently, including string scores like '85' and records with missing score fields, without dropping entries or crashing. Investigate the related implementation and apply the smallest safe fix. The current user report is incomplete, so verify the behavior carefully before claiming success."
+}
