@@ -1,7 +1,0 @@
-{
-  "task_id": "demo-001",
-  "repo_path": "repos/demo_repo",
-  "issue_title": "Fix add incorrect result",
-  "issue_description": "The add function in calculator.py returns the wrong value.",
-  "expected_test_command": "python3 -c \"from calculator import add; assert add(1, 2) == 3; assert add(-1, 1) == 0; assert add(0, 0) == 0; print('calculator ok')\""
-}
