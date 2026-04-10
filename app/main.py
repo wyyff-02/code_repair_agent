@@ -113,7 +113,7 @@ def build_cli_examples() -> str:
             "Examples:",
             "  python -m app.main show-config",
             "  python -m app.main run --task-file data/tasks/sample_bug_task.json --mode plan_and_code",
-            "  python -m app.main run --task-file data/tasks/demo_buggy_high_task.json --run-tests-only",
+            "  python -m app.main run --task-file data/tasks/buggy_high.json --run-tests-only",
             "  python -m app.main benchmark --tasks-dir data/tasks --mode plan_and_code",
         ]
     )

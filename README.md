@@ -56,7 +56,7 @@ Common commands:
 ```bash
 python -m app.main run --task-file data/tasks/sample_bug_task.json --mode demo
 python -m app.main run --task-file data/tasks/sample_bug_task.json --mode plan_and_code
-python -m app.main run --task-file data/tasks/demo_buggy_high_task.json --run-tests-only
+python -m app.main run --task-file data/tasks/buggy_high.json --run-tests-only
 python -m app.main benchmark --tasks-dir data/tasks --mode plan_and_code
 ```
 
@@ -86,7 +86,7 @@ Example:
 
 ```json
 {
-  "task_id": "demo-buggy-high-004",
+  "task_id": "repair-high-003",
   "repo_path": "repos/demo_repo",
   "issue_title": "Fix mutable default log state and thread-safe counter behavior",
   "issue_description": "In buggy_high.py, add_to_log should not share state across separate calls, and increment_counter should produce the expected final count when used from multiple threads.",

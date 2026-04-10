@@ -1,7 +1,0 @@
-{
-  "task_id": "demo-buggy-high-004",
-  "repo_path": "repos/demo_repo",
-  "issue_title": "Fix mutable default arguments and thread race condition",
-  "issue_description": "In buggy_high.py, the add_to_log function uses a mutable default list causing data persistence across calls. Additionally, the increment_counter function lacks synchronization, leading to incorrect final counts in multi-threaded execution.",
-  "expected_test_command": "python3 buggy_high.py"
-}
