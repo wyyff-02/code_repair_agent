@@ -49,16 +49,43 @@ Recommended environment:
 - Python 3.12 for OpenHands-backed planner/coder/reviewer stages
 - a configured `.env` file for model access when using `plan_and_code`
 
-Install dependencies:
+Install `uv`(0.8.13+):
 
 ```bash
-pip install -r requirements.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh 
+```
+
+Create the OpenHands runtime environment with Python 3.12:
+
+```bash
+uv venv --python 3.12 .venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+```
+
+Create your local environment file:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` and fill in the model-related settings you actually use, such as:
+
+- `LLM_API_KEY`
+- `LLM_MODEL`
+- `LLM_BASE_URL`
+- `OPENHANDS_API_KEY` and `OPENHANDS_BASE_URL` when needed in your setup
+
+Optional sanity check:
+
+```bash
+.venv/bin/python -m app.main show-config
 ```
 
 One command that can run immediately without model configuration:
 
 ```bash
-python -m app.main run --task-file data/tasks/buggy_high.json --run-tests-only
+.venv/bin/python -m app.main run --task-file data/tasks/buggy_high.json --run-tests-only
 ```
 
 This command uses the local tester path only and prints a compact result summary for the sample repo task.
@@ -66,15 +93,15 @@ This command uses the local tester path only and prints a compact result summary
 Full workflow with planner, coder, tester, reviewer, retry, and rollback:
 
 ```bash
-python -m app.main run --task-file data/tasks/sample_bug_task.json --mode plan_and_code
+.venv/bin/python -m app.main run --task-file data/tasks/sample_bug_task.json --mode plan_and_code
 ```
 
 Useful CLI commands:
 
 ```bash
-python -m app.main show-config
-python -m app.main run --task-file data/tasks/sample_bug_task.json --mode demo
-python -m app.main benchmark --tasks-dir data/tasks --mode plan_and_code
+.venv/bin/python -m app.main show-config
+.venv/bin/python -m app.main run --task-file data/tasks/sample_bug_task.json --mode demo
+.venv/bin/python -m app.main benchmark --tasks-dir data/tasks --mode plan_and_code
 ```
 
 GitHub-ready repository files included in this project:
