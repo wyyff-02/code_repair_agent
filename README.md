@@ -15,15 +15,20 @@ The project uses a single-model, multi-agent workflow with four roles:
 
 ## System Architecture
 
-```text
-task json
-  -> CodeRepairRunner
-  -> Planner
-  -> Coder
-  -> Tester
-  -> Reviewer
-  -> retry / rollback loop when reviewer returns retry
-  -> result artifacts under data/results/{task_id}/
+```mermaid
+flowchart TD
+    A[Task JSON] --> B[CodeRepairRunner]
+    B --> C[Planner]
+    C --> D[Coder]
+    D --> E[Tester]
+    E --> F[Reviewer]
+    F -->|accept| G[Write result artifacts]
+    F -->|retry and attempts remaining| H[Save attempt outputs]
+    H --> I[Record git diff]
+    I --> J[Rollback with git reset --hard]
+    J --> C
+    F -->|fail or max retries reached| G
+    G --> K[data/results/task_id/]
 ```
 
 Key modules:
@@ -37,26 +42,38 @@ Key modules:
 - `app/tools/`: repo, test, and git helpers
 - `app/eval/benchmark.py`: serial benchmark runner
 
-## Running
+## Quick Start
 
 Recommended environment:
 
 - Python 3.12 for OpenHands-backed planner/coder/reviewer stages
 - a configured `.env` file for model access when using `plan_and_code`
 
-Install and inspect the config:
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
-python -m app.main show-config
 ```
 
-Common commands:
+One command that can run immediately without model configuration:
 
 ```bash
-python -m app.main run --task-file data/tasks/sample_bug_task.json --mode demo
-python -m app.main run --task-file data/tasks/sample_bug_task.json --mode plan_and_code
 python -m app.main run --task-file data/tasks/buggy_high.json --run-tests-only
+```
+
+This command uses the local tester path only and prints a compact result summary for the sample repo task.
+
+Full workflow with planner, coder, tester, reviewer, retry, and rollback:
+
+```bash
+python -m app.main run --task-file data/tasks/sample_bug_task.json --mode plan_and_code
+```
+
+Useful CLI commands:
+
+```bash
+python -m app.main show-config
+python -m app.main run --task-file data/tasks/sample_bug_task.json --mode demo
 python -m app.main benchmark --tasks-dir data/tasks --mode plan_and_code
 ```
 
@@ -77,6 +94,20 @@ Result persistence:
 
 - Per-task results go to `data/results/{task_id}/`
 - Benchmark summary goes to `data/results/benchmark_summary.md`
+
+## Effect Data
+
+Benchmark :
+
+| metric | value |
+| --- | --- |
+| total_tasks | 8 |
+| success_count | 6 |
+| success_rate | 75.00% |
+| avg_retries | 0.25 |
+| test_pass_rate | 87.50% |
+
+This is a local benchmark result for the current project state, intended as an engineering snapshot rather than a fixed guarantee.
 
 ## Task Format
 
