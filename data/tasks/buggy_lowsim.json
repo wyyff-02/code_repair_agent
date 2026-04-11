@@ -2,6 +2,6 @@
   "task_id": "buggy-sim-001",
   "repo_path": "repos/demo_repo",
   "issue_title": "Fix NameError in average calculation",
-  "issue_description": "In buggy_lowsim.py, calculate_average raises a NameError due to a misspelled variable name. The function should correctly compute the average of a list of numbers.",
+  "issue_description": "In buggy_lowsim.py,NameError: name 'tottl' is not defined. Did you mean: 'total'?",
   "expected_test_command": "python3 buggy_lowsim.py"
 }
