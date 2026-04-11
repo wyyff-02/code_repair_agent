@@ -14,7 +14,8 @@ Suggested test command: {test_command}
 
 Planner output:
 {planner_output}
-
+{heuristic_rules}
+{attempt_context}
 Your job:
 1. Search the repository for the most relevant files, symbols, and tests.
 2. Inspect enough code to understand the real bug before editing.

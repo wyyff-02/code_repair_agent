@@ -42,9 +42,11 @@ class AppConfig:
     results_dir: Path
     repos_dir: Path
     prompts_dir: Path
+    heuristics_path: Path
     openhands_base_url: str | None
     openhands_api_key: str | None
     default_model: str | None
+    embedding_model: str | None
 
     @classmethod
     def load(cls, env_file: Path | None = None) -> "AppConfig":
@@ -66,6 +68,9 @@ class AppConfig:
         results_dir = _resolve_from_root(project_root, os.getenv("RESULTS_DIR", "data/results"))
         repos_dir = _resolve_from_root(project_root, os.getenv("REPOS_DIR", "repos"))
         prompts_dir = _resolve_from_root(project_root, os.getenv("PROMPTS_DIR", "app/prompts"))
+        heuristics_path = _resolve_from_root(
+            project_root, os.getenv("HEURISTICS_PATH", "data/heuristics.json")
+        )
 
         return cls(
             project_name=project_name,
@@ -77,9 +82,11 @@ class AppConfig:
             results_dir=results_dir,
             repos_dir=repos_dir,
             prompts_dir=prompts_dir,
+            heuristics_path=heuristics_path,
             openhands_base_url=os.getenv("OPENHANDS_BASE_URL") or None,
             openhands_api_key=os.getenv("OPENHANDS_API_KEY") or None,
             default_model=os.getenv("DEFAULT_MODEL") or None,
+            embedding_model=os.getenv("EMBEDDING_MODEL") or None,
         )
 
     def ensure_directories(self) -> None:

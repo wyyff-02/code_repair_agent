@@ -15,6 +15,8 @@ from app.agents.planner import PlanOutput, PlannerAgent
 from app.agents.reviewer import ReviewerAgent
 from app.agents.tester import TesterAgent
 from app.config import AppConfig
+from app.context import AttemptContext, build_attempt_context
+from app.heuristics import load_heuristics_block, save_heuristic
 from app.schemas import BugTask, RepairResult, ReviewerDecision, TestExecutionResult
 from app.tools.patch_tools import (
     get_changed_files,
@@ -182,6 +184,7 @@ class CodeRepairRunner:
                 task=task,
                 repo_path=repo_path,
                 retry_index=retry_index,
+                previous_attempts=attempts[:retry_index],
             )
             attempts.append(attempt)
             logs.extend(attempt["logs"])
@@ -200,6 +203,17 @@ class CodeRepairRunner:
             )
             decision = attempt["reviewer_output"].get("decision", "retry")
             if decision != "retry":
+                if decision == "accept":
+                    save_heuristic(
+                        issue_title=task.issue_title,
+                        coder_output=str(attempt.get("coder_output", "")),
+                        retries=retry_index,
+                        saved_at=self._utc_now_iso(),
+                        heuristics_path=self.config.heuristics_path,
+                        api_key=self.config.openhands_api_key or os.getenv("LLM_API_KEY"),
+                        base_url=self.config.openhands_base_url or os.getenv("LLM_BASE_URL"),
+                        embedding_model=self.config.embedding_model,
+                    )
                 result = self._build_repair_result(
                     task=task,
                     output_dir=output_dir,
@@ -536,12 +550,16 @@ class CodeRepairRunner:
         task: BugTask,
         repo_path: Path,
         planner_output: PlanOutput,
+        attempt_context: AttemptContext | None = None,
+        heuristic_block: str = "",
     ) -> OpenHandsRunResult:
         try:
             coder_prompt = self.coder_agent.build_prompt(
                 task=task,
                 repo_path=repo_path,
                 plan_output=planner_output,
+                attempt_context=attempt_context,
+                heuristic_block=heuristic_block,
             )
         except OSError as exc:
             return OpenHandsRunResult(
@@ -782,6 +800,7 @@ class CodeRepairRunner:
         task: BugTask,
         repo_path: Path,
         retry_index: int,
+        previous_attempts: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """Run one full repair attempt and return the serialized attempt record."""
         attempt_logs = [
@@ -790,10 +809,26 @@ class CodeRepairRunner:
         planner_output, planner_result = self._run_planner_stage(task=task, repo_path=repo_path)
         attempt_logs.extend(planner_result.logs)
 
+        attempt_context = build_attempt_context(
+            attempt_index=retry_index,
+            previous_attempts=previous_attempts or [],
+        )
+
+        heuristic_block = load_heuristics_block(
+            issue_title=task.issue_title,
+            issue_description=task.issue_description,
+            heuristics_path=self.config.heuristics_path,
+            api_key=self.config.openhands_api_key or os.getenv("LLM_API_KEY"),
+            base_url=self.config.openhands_base_url or os.getenv("LLM_BASE_URL"),
+            embedding_model=self.config.embedding_model,
+        )
+
         coder_result = self._run_coder_stage(
             task=task,
             repo_path=repo_path,
             planner_output=planner_output,
+            attempt_context=attempt_context,
+            heuristic_block=heuristic_block,
         )
         attempt_logs.extend(coder_result.logs)
 

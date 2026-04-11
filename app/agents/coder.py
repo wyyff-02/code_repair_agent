@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from app.agents.planner import PlanOutput
+from app.context import AttemptContext
 from app.schemas import BugTask
 
 
@@ -20,8 +21,11 @@ class CoderAgent:
         task: BugTask,
         repo_path: Path,
         plan_output: PlanOutput,
+        attempt_context: AttemptContext | None = None,
+        heuristic_block: str = "",
     ) -> str:
         template = self.load_prompt()
+        context_block = attempt_context.to_prompt_block() if attempt_context is not None else ""
         return template.format(
             workspace_root=repo_path,
             issue_title=task.issue_title,
@@ -32,4 +36,6 @@ class CoderAgent:
                 indent=2,
                 ensure_ascii=False,
             ),
+            heuristic_rules=heuristic_block,
+            attempt_context=context_block,
         )
