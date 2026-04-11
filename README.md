@@ -1,6 +1,6 @@
 # Code Repair Agent
 
-`code_repair_agent` is a local Python CLI project for running a small code-repair workflow against a repository task.
+`code_repair_agent` is a local Python CLI project for automatically repairing code bugs through a multi-stage agent pipeline with context engineering.
 
 The core loop is:
 
@@ -15,45 +15,71 @@ The project uses a single-model, multi-agent workflow with four roles:
 
 ## System Architecture
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                     Code Repair Agent System                   │
-├─────────────────────────────────────────────────────────────────┤
-│  Phase 1: Task Input       Phase 2: Planning                   │
-│  ┌─────────────────┐       ┌─────────────────┐                 │
-│  │ Task Loader     │──────▶│ Planner Agent   │                 │
-│  │ Repo Resolver   │       │ Repair Plan     │                 │
-│  └─────────────────┘       └────────┬────────┘                 │
-│                                     │                           │
-│  Phase 3: Coding                   ▼                           │
-│  ┌─────────────────────────────────────────────┐               │
-│  │ Coder Agent │ Repo Search │ File Editing    │               │
-│  └─────────────────────────────────────────────┘               │
-│                            │                                    │
-│  Phase 4: Validation      ▼           Phase 5: Persistence      │
-│  ┌─────────────────┐       ┌─────────────────┐                 │
-│  │ Tester Agent    │──────▶│ Result Writer   │                 │
-│  │ Reviewer Agent  │       │ Logs and Diffs  │                 │
-│  └────────┬────────┘       └─────────────────┘                 │
-│           │                                                     │
-│           ▼                                                     │
-│  Retry / Rollback Loop                                          │
-│  ┌─────────────────────────────────────────────┐               │
-│  │ Save attempt outputs │ Record diff │ Reset  │               │
-│  └─────────────────────────────────────────────┘               │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    A[Task JSON] --> B[Planner]
+    B --> C[Coder]
+    C --> D[Tester]
+    D --> E[Reviewer]
+    E -->|accept / fail| F[data/results/]
+    E -->|retry| G[git reset --hard]
+    G --> B
 ```
 
 Key modules:
 
 - `app/main.py`: CLI entrypoint
 - `app/runner.py`: workflow orchestration, retry loop, rollback, result persistence
+- `app/context.py`: attempt context pack assembled from the previous failed attempt
+- `app/heuristics.py`: heuristic memory — save successful fixes, retrieve via semantic search
 - `app/agents/planner.py`: planner stage
 - `app/agents/coder.py`: coder stage
 - `app/agents/tester.py`: tester stage
 - `app/agents/reviewer.py`: reviewer stage
 - `app/tools/`: repo, test, and git helpers
 - `app/eval/benchmark.py`: serial benchmark runner
+
+## Context Engineering
+
+Each repair attempt assembles a **context pack** before the coder stage runs, drawing from three sources:
+
+### Attempt context (`app/context.py`)
+
+On retry, the coder receives a structured summary of what went wrong in the previous attempt:
+
+- failure reason from the reviewer
+- failed test output
+- list of files modified last time
+- truncated git diff
+
+This prevents the coder from repeating the same incorrect fix across retries.
+
+### Heuristic memory (`app/heuristics.py`)
+
+After each successful repair (`accept`), the system automatically:
+
+1. Extracts the `Fix explanation:` section from the coder output
+2. Calls the embedding API (`text-embedding-v3` via DashScope) to compute a vector for the fix
+3. Appends the entry to `data/heuristics.json`
+
+Before each coder stage, the system retrieves relevant past fixes using a **hybrid retrieval strategy**:
+
+- **Semantic search**: embeds the current issue and ranks all stored entries by cosine similarity, returning the top 3
+- **Recency**: always includes the 5 most recent entries
+- Results are deduplicated and injected into the coder prompt as a `[Repair heuristics]` block
+
+When the embedding API is unavailable, the system falls back to Jaccard keyword similarity automatically.
+
+### Prompt structure
+
+The assembled coder prompt follows this layout:
+
+```
+Planner output
+[Repair heuristics from past successful fixes]   ← historical patterns
+[Previous attempt N failed]                       ← retry context (empty on first attempt)
+Your job / Rules / Response format
+```
 
 ## Quick Start
 
@@ -82,11 +108,12 @@ Create your local environment file:
 cp .env.example .env
 ```
 
-Then edit `.env` and fill in the model-related settings you actually use, such as:
+Then edit `.env` and fill in the model-related settings you actually use:
 
 - `LLM_API_KEY`
 - `LLM_MODEL`
 - `LLM_BASE_URL`
+- `EMBEDDING_MODEL` — embedding model name for heuristic semantic search (e.g. `text-embedding-v3`)
 - `OPENHANDS_API_KEY` and `OPENHANDS_BASE_URL` when needed in your setup
 
 Optional sanity check:
@@ -98,10 +125,8 @@ Optional sanity check:
 One command that can run immediately without model configuration:
 
 ```bash
-.venv/bin/python -m app.main run --task-file data/tasks/buggy_low.json --run-tests-only
+.venv/bin/python -m app.main run --task-file data/tasks/buggy_high.json --run-tests-only
 ```
-
-This command uses the local tester path only and prints a compact result summary for the sample repo task.
 
 Full workflow with planner, coder, tester, reviewer, retry, and rollback:
 
@@ -116,13 +141,6 @@ Useful CLI commands:
 .venv/bin/python -m app.main run --task-file data/tasks/buggy_low.json --mode demo
 ```
 
-GitHub-ready repository files included in this project:
-
-- `.gitignore`
-- `LICENSE` (MIT)
-- `.github/ISSUE_TEMPLATE/bug_report.md`
-- `.github/PULL_REQUEST_TEMPLATE.md`
-
 Main CLI commands:
 
 - `show-config`: print resolved project paths and runtime config
@@ -132,6 +150,7 @@ Main CLI commands:
 Result persistence:
 
 - Per-task results go to `data/results/{task_id}/`
+- Heuristic memory goes to `data/heuristics.json` (auto-maintained)
 - Benchmark summary goes to `data/results/benchmark_summary.md`
 
 ## Benchmark Results
@@ -200,6 +219,7 @@ Current behavior:
 - Retry and rollback are bounded and simple: reviewer-driven retries are capped, and rollback uses `git reset --hard` inside the target repo.
 - Result diff capture is currently less precise for untracked files. `changed_files` can reflect working-tree state rather than only the files edited in the current attempt.
 - Benchmark runs are not isolated per task. Tasks share the same local repository state unless you reset or prepare the repo between runs.
+- Heuristic retrieval accuracy depends on the quality of the embedding model and the coder output format. Entries without a `Fix explanation:` section fall back to the first two lines of the coder output.
 
 ## License
 
