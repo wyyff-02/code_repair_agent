@@ -15,15 +15,29 @@ The project uses a single-model, multi-agent workflow with four roles:
 
 ## System Architecture
 
-```mermaid
-flowchart LR
-    A[Task JSON] --> B[Planner]
-    B --> C[Coder]
-    C --> D[Tester]
-    D --> E[Reviewer]
-    E -->|accept / fail| F[data/results/]
-    E -->|retry| G[git reset --hard]
-    G --> B
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                     Code Repair Agent System                    │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 1: Task Input       Phase 2: Planning                   │
+│  ┌─────────────────┐       ┌─────────────────┐                 │
+│  │ Task Loader     │──────▶│ Planner Agent   │                 │
+│  │ Repo Resolver   │       │ Repair Plan     │                 │
+│  └─────────────────┘       └────────┬────────┘                 │
+│                                     │                           │
+│  Phase 3: Coding                   ▼                           │
+│  ┌─────────────────────────────────────────────┐               │
+│  │ Coder Agent │ Repo Search │ File Editing    │               │
+│  └─────────────────────────────────────────────┘               │
+│                            │                                    │
+│  Phase 4: Validation      ▼           Phase 5: Persistence      │
+│  ┌─────────────────┐       ┌─────────────────┐                 │
+│  │ Tester Agent    │──────▶│ Result Writer   │                 │
+│  │ Reviewer Agent  │       │ Logs and Diffs  │                 │
+│  └─────────────────┘       └─────────────────┘                 │
+│                                                                 │
+│  Retry / Rollback Loop: reviewer requests retry -> reset -> code│
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 Key modules:
@@ -59,7 +73,7 @@ This prevents the coder from repeating the same incorrect fix across retries.
 After each successful repair (`accept`), the system automatically:
 
 1. Extracts the `Fix explanation:` section from the coder output
-2. Calls the embedding API (`text-embedding-v3` via DashScope) to compute a vector for the fix
+2. Calls the embedding API (`text-embedding-v4` via DashScope) to compute a vector for the fix
 3. Appends the entry to `data/heuristics.json`
 
 Before each coder stage, the system retrieves relevant past fixes using a **hybrid retrieval strategy**:
@@ -125,7 +139,7 @@ Optional sanity check:
 One command that can run immediately without model configuration:
 
 ```bash
-.venv/bin/python -m app.main run --task-file data/tasks/buggy_high.json --run-tests-only
+.venv/bin/python -m app.main run --task-file data/tasks/buggy_low.json --run-tests-only
 ```
 
 Full workflow with planner, coder, tester, reviewer, retry, and rollback:
